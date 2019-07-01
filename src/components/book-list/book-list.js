@@ -2,47 +2,60 @@ import React, { Component } from 'react';
 import BookListItem from '../book-list-item';
 import { connect } from 'react-redux';
 import { withBookstoreService } from '../hoc';
-import { booksLoaded, booksRequested } from '../../actions';
-import { bindActionCreators } from 'redux';
+import { fetchBooks, bookAddedToCart } from '../../actions';
+import ErrorIndicator from '../error-indicator';
 import Spinner from '../spinner';
 import './book-list.css';
 
-class BookList extends Component {
+const BookList = ({ books, onAddedToCart }) => {
+	return (
+		<ul className="book-list">
+			{books.map(book => (
+				<li key={book.id}>
+					<BookListItem
+						book={book}
+						onAddedToCart={() => onAddedToCart(book.id)}
+					/>
+				</li>
+			))}
+		</ul>
+	);
+};
+
+class BookListContainer extends Component {
 	async componentDidMount() {
-		const { bookstoreService, booksLoaded, booksRequested } = this.props;
-		booksRequested();
-		// get data
-		const data = await bookstoreService.getBooks();
-		// send action to store
-		booksLoaded(data);
+		this.props.fetchBooks();
 	}
 
 	render() {
-		const { books, loading } = this.props;
+		const { books, loading, error, onAddedToCart } = this.props;
 		if (loading) {
 			return <Spinner />;
 		}
-		return (
-			<ul className="book-list">
-				{books.map(book => (
-					<li key={book.id}>
-						<BookListItem book={book} />
-					</li>
-				))}
-			</ul>
-		);
+
+		if (error) {
+			return <ErrorIndicator />;
+		}
+		return <BookList books={books} onAddedToCart={onAddedToCart} />;
 	}
 }
 
 const mapStateToProps = state => {
 	return {
 		books: state.books,
-		loading: state.loading
+		loading: state.loading,
+		error: state.error
 	};
 };
 
-const mapDispatchToProps = dispatch => {
-	return bindActionCreators({ booksLoaded, booksRequested }, dispatch);
+//Own props allows us to get props from component that wraps our connect function
+const mapDispatchToProps = (dispatch, ownProps) => {
+	const { bookstoreService } = ownProps;
+	return {
+		//we call this function that returns another function that does not require any args
+		fetchBooks: fetchBooks(bookstoreService, dispatch),
+		onAddedToCart: id => dispatch(bookAddedToCart(id))
+	};
 
 	/* return {
 		booksLoaded: newBooks => {
@@ -55,5 +68,5 @@ export default withBookstoreService()(
 	connect(
 		mapStateToProps,
 		mapDispatchToProps
-	)(BookList)
+	)(BookListContainer)
 );

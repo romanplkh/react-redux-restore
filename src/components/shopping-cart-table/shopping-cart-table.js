@@ -1,7 +1,46 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import './shopping-cart-table.css';
 
-const ShoppingCartTable = () => {
+const ShoppingCartTable = ({
+	items,
+	total,
+	onIncrease,
+	onDecrease,
+	onDelete
+}) => {
+	const renderRow = (el, i) => {
+		const { id, name, count, total } = el;
+		return (
+			<tr key={id}>
+				<td>{i + 1}</td>
+				<td>{name}</td>
+				<td>{count}</td>
+				<td>{total}</td>
+				<td>
+					<button
+						onClick={() => onDelete(id)}
+						className="btn btn-outline-danger btn-sm float-right"
+					>
+						<i className="fa fa-trash-o" />
+					</button>
+					<button
+						onClick={() => onIncrease(id)}
+						className="btn btn-outline-success btn-sm float-right"
+					>
+						<i className="fa fa-plus-circle" />
+					</button>
+					<button
+						onClick={() => onDecrease(id)}
+						className="btn btn-outline-warning btn-sm float-right"
+					>
+						<i className="fa fa-minus-circle" />
+					</button>
+				</td>
+			</tr>
+		);
+	};
+
 	return (
 		<div className="shopping-cart-table">
 			<h2>Your Order</h2>
@@ -15,31 +54,36 @@ const ShoppingCartTable = () => {
 						<th>Action</th>
 					</tr>
 				</thead>
-
-				<tbody>
-					<tr>
-						<td>1</td>
-						<td>Site Reliability Engineering</td>
-						<td>2</td>
-						<td>$40</td>
-						<td>
-							<button className="btn btn-outline-danger btn-sm float-right">
-								<i className="fa fa-trash-o" />
-							</button>
-							<button className="btn btn-outline-success btn-sm float-right">
-								<i className="fa fa-plus-circle" />
-							</button>
-							<button className="btn btn-outline-warning btn-sm float-right">
-								<i className="fa fa-minus-circle" />
-							</button>
-						</td>
-					</tr>
-				</tbody>
+				<tbody>{items.map(renderRow)}</tbody>
 			</table>
 
-			<div className="total">Total: $201</div>
+			<div className="total">Total: ${total}</div>
 		</div>
 	);
 };
 
-export default ShoppingCartTable;
+const mapStateToProps = state => {
+	return {
+		items: state.cartItems,
+		total: state.orderTotal
+	};
+};
+
+const mapDispatchToProps = dispatch => {
+	return {
+		onIncrease: id => {
+			console.log('Omn increaser', id);
+		},
+		onDecrease: id => {
+			console.log('Omn Decreaser', id);
+		},
+		onDelete: id => {
+			console.log('Omn Delete', id);
+		}
+	};
+};
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(ShoppingCartTable);
