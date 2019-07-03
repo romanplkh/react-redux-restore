@@ -41,10 +41,12 @@ class BookListContainer extends Component {
 }
 
 const mapStateToProps = state => {
+	const { bookList: { books, loading, error } } = state;
+
 	return {
-		books: state.books,
-		loading: state.loading,
-		error: state.error
+		books,
+		loading,
+		error
 	};
 };
 
